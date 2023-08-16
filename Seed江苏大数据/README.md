@@ -138,16 +138,3 @@ sh data2tensor.sh
 sh run.sh 
 # 执行完，结果保存至result/result.csv
 ```
-
-### 四、 队伍信息
-
-单人组队：wwwwhy
-
-![image-20221124163815937](description.assets/image-20221124163815937.png)
-
-王浩宇，230506199904020418
-
-提交记录：
-
-![image-20221124163827724](description.assets/image-20221124163827724.png)
-
