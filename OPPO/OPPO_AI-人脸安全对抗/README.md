@@ -52,36 +52,17 @@ pip install torch==1.8.0+cu111 torchvision==0.9.0+cu111 torchaudio==0.8.0 -f htt
 
    ​	使用**余弦相似度**计算adv_image的特征与com_image的特征距离作为攻击强度目标（攻击损失-adv_loss），另一方面使用**MSSSIM**计算adv_image与ori_image的结构相似度（质量损失-struct_loss）将这两部分作为total loss用于更新adv_image。
 
-   我们将迭代次数设置为40次，在每次迭代后根据当前的adv_loss和struct_loss更新不同损失权重： 
-
-   ​	![1634976476539](C:\Users\WHY\AppData\Roaming\Typora\typora-user-images\1634976476539.png)
+   我们将迭代次数设置为40次，在每次迭代后根据当前的adv_loss和struct_loss更新不同损失权重：
 
 3. 梯度计算
 
    ​	根据loss可以得到gradient，第一步使用了动量的方法，参考了**【CVPR2018】Boosting adversarial attacks with momentum**（Yinpeng Dong, Fangzhou Liao, Tianyu Pang, Hang Su, Jun Zhu, Xiaolin Hu, Jianguo Li）我们将此次计算得到的gradient与上次迭代的gradient结合，
 
-   ![1634978284239](C:\Users\WHY\AppData\Roaming\Typora\typora-user-images\1634978284239.png)
-
-   然后第二步参考了**【CVPR2019】Evading Defenses to Transferable Adversarial Examples by Translation-Invariant Attacks**(Yinpeng Dong, Tianyu Pang, Hang Su, Jun Zhu)，将梯度做一次平移转换（考虑CNN的平移不变性）
-
-   ![1634978301618](C:\Users\WHY\AppData\Roaming\Typora\typora-user-images\1634978301618.png)
+   第二步参考了**【CVPR2019】Evading Defenses to Transferable Adversarial Examples by Translation-Invariant Attacks**(Yinpeng Dong, Tianyu Pang, Hang Su, Jun Zhu)，将梯度做一次平移转换（考虑CNN的平移不变性）
 
    第三步参考**【ECCV2020】Patch-wise Attack for Fooling Deep Neural Network**（Lianli Gao，Qilong Zhang，Jingkuan Song，Xianglong Liu，Heng Tao Shen），这个方法是将当前区域干扰超出设置值的部分映射到周围区域（减少直接clip掉的数值造成的信息丢失），同时这部分参考**Staircase Sign Method for Boosting Adversarial Attacks**（Lianli Gao, Qilong Zhang, Xiaosu Zhu， Jingkuan Song Heng Tao Shen）将sign值做一个百分值计算，这一步的作用是不仅仅考虑gradient的方向，同时考虑数值的影响。（计算参数直接参考文章中参数设置）
-
-   ![1634978720202](C:\Users\WHY\AppData\Roaming\Typora\typora-user-images\1634978720202.png)
 
 4. adv_image选取
 
    我们最开始设置的干扰大小的是8，MSSSIM是0.96。迭代40次得到的adv_image，我们使用Face++的人脸比对API验证当前adv_image与com_image的相似程度，当返回值大于65时，将干扰值+1（最大18），MSSSIM-0.01（最小0.88）重新训练，直到返回值小于65.
-
-**代码运行时需要注意点：**
-
-1. 由于内存或者其他问题造成运行中断时，需删除当前未训练完成image
-2. 处理小图像时大概需要10G显存，大图像14G左右。
-3. 可以在run.sh中修改使用--cuda 选择显卡，因为代码中设置了对于已生成图像直接continue，所以可多次运行脚本。
-4. 因为result_data中已经生成了1000张对图像，重新生成样本时需要将原有图像删除或者直接更改result_data/images为result_data/images1即可
-
-
-
-
 
